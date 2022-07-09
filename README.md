@@ -1,5 +1,5 @@
 # PDF-Program
-This Program is created to merge PDF files and extract comments from PDF files. 
+This Program is created to merge PDF files and extract comments from PDF files. The GUI is based on the Tkinter module.
 
 ## Main functionalities:
 ### 1. Merge two or more PDF files
