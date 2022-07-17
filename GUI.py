@@ -7,6 +7,7 @@ from pygments import highlight
 from Merge import merge_files
 from Extract import extract_files
 import os
+import re
 
 from tkinter.filedialog import askopenfile, askopenfilename, askopenfilenames
 from tkinter import RAISED, Frame, scrolledtext, Label
@@ -185,7 +186,12 @@ class MergePage(tk.Frame):
         def enter_doc(eventdrop = None):
             docpath_r = []
             if eventdrop != None: #Eventdrop, wenn per Drag and Drop ausgewählt wird.
-                docpath_r = eventdrop.data.split()
+                find_colon = [m.start() - 1 for m in re.finditer(":", eventdrop.data)] # Finde alle Doppelpunkte, schneide String bis ".pdf" aus.
+                find_ext = [m.start() + 4 for m in re.finditer(".pdf", eventdrop.data)]
+                paths_ranges = list(zip(find_colon,find_ext))
+                for pathrange in paths_ranges:
+                    docpath_r.append(eventdrop.data[pathrange[0]:pathrange[1]])
+
             else:
                 docpath = [askopenfilenames(parent=self, title=f"Bitte gebe den Pfad des Dokuments ein: ", filetypes=[("Pdf file", "*.pdf")])]
                 docpath_r = [path for path in docpath[0]]
