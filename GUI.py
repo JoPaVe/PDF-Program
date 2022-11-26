@@ -201,7 +201,7 @@ class MergePage(tk.Frame):
             for path in docpath_r:    
                 filename = path.split("/")[-1].split(".")[0]
                 
-                reader = PyPDF2.PdfFileReader(path)
+                reader = PyPDF2.PdfFileReader(path, strict = False)
                 count_pages = reader.getNumPages()
 
                 if count_pages == 0:
@@ -453,7 +453,7 @@ class ExtractPage(tk.Frame):
             for path in docpath_r:    
                 filename = path.split("/")[-1].split(".")[0]
                 
-                reader = PyPDF2.PdfFileReader(path)
+                reader = PyPDF2.PdfFileReader(path, strict = False)
                 count_pages = reader.getNumPages()
 
                 if count_pages == 0:
