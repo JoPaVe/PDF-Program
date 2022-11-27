@@ -255,7 +255,8 @@ class MergePage(tk.Frame):
             min_page = from_box.get()
             max_page = to_box.get()
 
-            if max_page > values[2]:
+            if int(max_page) > int(values[2]):
+                print(max_page, values, values[2])
                 showinfo("Uffbasse", "Die höchste Seitenanzahl darf nicht höher als die Seitenanzahl der PDF sein! ")
             elif int(min_page) < 0:
                 showinfo("Uffbasse", "Die niedrigste Seitenzahl darf nicht kleiner als 0 sein! ")

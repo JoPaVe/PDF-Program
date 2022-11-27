@@ -10,7 +10,8 @@ def merge_files(path_docs):
     namelist = []
     for pdf in path_docs:
         namelist.append(pdf[0])
-        sitetup = (int(pdf[1])-1,int(pdf[2]))
+        print(pdf)
+        sitetup = (int(pdf[1])-1,int(pdf[2]-1))
         pdffile = fitz.open(pdf[3])
         merger.insert_pdf(pdffile,from_page=sitetup[0],to_page=sitetup[1])
         pdffile.close()
