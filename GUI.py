@@ -8,6 +8,7 @@ from Merge import merge_files
 from Extract import extract_files
 import os
 import re
+import tempfile
 
 from tkinter.filedialog import askopenfile, askopenfilename, askopenfilenames
 from tkinter import RAISED, Frame, scrolledtext, Label
@@ -15,6 +16,9 @@ from tkinter import LEFT, RIDGE, ttk
 from tkinter.messagebox import showinfo
 from tkinterdnd2 import * 
 from PIL import ImageTk, Image  
+
+from pdf2image import convert_from_path, convert_from_bytes
+
 
 class tkinterApp(TkinterDnD.Tk):
     def __init__(self, *args,**kwargs):
@@ -166,6 +170,9 @@ class MergePage(tk.Frame):
         #> Tabelleninputvariable
         table_fill = [] 
 
+        #> Picture_Viewer_Startvalue
+        self.cur_page = 0
+
         
 ### Funktionen Button_Frame
         # Ausführen
@@ -181,6 +188,60 @@ class MergePage(tk.Frame):
                     paths.append([tree.item(entry)['values'][0],tree.item(entry)['values'][1],tree.item(entry)['values'][2],tree.item(entry)['values'][3]])
                 
                 merge_files(paths)
+
+        # Vorschau
+        def call_preview():
+            list_entries = tree.get_children()
+            paths = []
+            
+            if len(list_entries) == 0:
+                showinfo("Uffbasse", "Es muss mindestens ein Dokument hinzugefügt werden! ")
+            else:
+                for entry in list_entries:
+                    paths.append([tree.item(entry)['values'][0],tree.item(entry)['values'][1],tree.item(entry)['values'][2],tree.item(entry)['values'][3]])
+                
+                pdf_temp = merge_files(paths, tempor = True)
+
+                images_pdf = convert_from_path(pdf_temp, poppler_path = r"C:\Anaconda\pkgs\poppler-22.11.0-ha6c1112_0\Library\bin") 
+                photo_viewer(images_pdf)
+                os.remove(pdf_temp)
+        
+        def photo_viewer(image_list):
+            image_top = tk.Toplevel()
+            image_top.title('Vorschau')
+            image_top.resizable()
+            top_main_frame = tk.Frame(image_top, bg="#FFA500", width=600)
+            top_main_frame.grid(row = 0, column = 0)
+            
+            # PictureList
+            list_pictures = [ImageTk.PhotoImage(page.resize((int(page.size[0]*(1/4)),int(page.size[1]*(1/4))), Image.Resampling.LANCZOS)) for page in image_list]
+
+
+            img_label = tk.Label(top_main_frame, image = list_pictures[0])
+            img_label.grid(row = 0, column = 0, columnspan = 2)
+
+            # Button Back
+            back_button = tk.Button(top_main_frame, text = 'Back', command = lambda: Back(img_label, list_pictures), height=1, width = 20, relief="groove", bg="#dadada")
+            back_button.grid(row = 1, column = 0)
+
+            # Button Next
+            next_button = tk.Button(top_main_frame, text = 'Next', command = lambda: Next(img_label, list_pictures), height=1, width = 20, relief="groove", bg="#dadada")  
+            next_button.grid(row = 1, column = 1)
+
+        def Back(img_label, list_pictures):  
+            self.cur_page = self.cur_page - 1  
+            if self.cur_page >= 0:
+                img_label.config(image = list_pictures[self.cur_page])
+            else:
+                self.cur_page = 0
+
+
+        def Next(img_label, list_pictures):
+            self.cur_page = self.cur_page + 1  
+            if self.cur_page < len(list_pictures):
+                img_label.config(image = list_pictures[self.cur_page])  
+            else: self.cur_page = len(list_pictures) - 1
+
 
         # Hinzufügen
         def enter_doc(eventdrop = None):
@@ -256,7 +317,6 @@ class MergePage(tk.Frame):
             max_page = to_box.get()
 
             if int(max_page) > int(values[2]):
-                print(max_page, values, values[2])
                 showinfo("Uffbasse", "Die höchste Seitenanzahl darf nicht höher als die Seitenanzahl der PDF sein! ")
             elif int(min_page) < 0:
                 showinfo("Uffbasse", "Die niedrigste Seitenzahl darf nicht kleiner als 0 sein! ")
@@ -384,6 +444,11 @@ class MergePage(tk.Frame):
         merge_btn = tk.Button(button_frame, textvariable=run_doc, command=lambda:call_merge(), height=1, width=10, anchor=tk.CENTER,  relief="groove", bg="#dadada")
         merge_btn.grid(column=1,row=0, padx=50, ipadx=20, ipady=15)
 
+        # Vorschau 
+        preview_doc = tk.StringVar()
+        preview_doc.set("Vorschau")
+        preview_btn = tk.Button(button_frame, textvariable=preview_doc, command=lambda:call_preview(), height=1, width=10, anchor=tk.CENTER,  relief="groove", bg="#dadada")
+        preview_btn.grid(column=1,row=1, padx=10, ipadx=20, ipady=5)
 
 
 class ExtractPage(tk.Frame):
