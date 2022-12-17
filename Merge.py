@@ -1,9 +1,11 @@
-#from PyPDF2 import PdfFileMerger
 import tkinter as tk
 from tkinter.filedialog import askopenfilename, asksaveasfilename, askdirectory
 import os
 import fitz
 import tempfile
+import io
+
+from PyPDF2 import PdfFileReader
 
 def merge_files(path_docs, tempor = False):
 
@@ -30,8 +32,22 @@ def merge_files(path_docs, tempor = False):
     elif tempor == True:
         pdf_temp_file_path = os.path.join(tempfile.gettempdir(),"tempfile.pdf")
         merger.save(pdf_temp_file_path)
-        print(pdf_temp_file_path)
         return pdf_temp_file_path
 
 
     merger.close()
+
+def pdf_convert(path, filename):
+    doc = fitz.open()
+
+    imgdoc = fitz.open(path)
+    pdfbytes = imgdoc.convert_to_pdf()
+    imgdoc.close()
+    
+    imgpdf = fitz.open("pdf",pdfbytes)
+    doc.insert_pdf(imgpdf)
+
+    path = asksaveasfilename(initialfile = filename, title="Bild als PDf-speichern",defaultextension=".pdf")
+    doc.save(path)
+
+    return (PdfFileReader(path, strict = False), path)

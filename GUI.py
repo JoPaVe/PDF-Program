@@ -4,7 +4,7 @@ import PyPDF2
 from PyPDF2 import PdfFileReader
 from PIL import Image, ImageTk
 from pygments import highlight
-from Merge import merge_files
+from Merge import merge_files, pdf_convert
 from Extract import extract_files
 import os
 import re
@@ -248,21 +248,23 @@ class MergePage(tk.Frame):
             docpath_r = []
             if eventdrop != None: #Eventdrop, wenn per Drag and Drop ausgewählt wird.
                 find_colon = [m.start() - 1 for m in re.finditer(":", eventdrop.data)] # Finde alle Doppelpunkte, schneide String bis ".pdf" aus.
-                find_ext = [m.start() + 4 for m in re.finditer(".pdf", eventdrop.data)]
+                find_ext = [m.start() + 4 for m in re.finditer(".pdf|.jped|.jpg|.png", eventdrop.data)]
                 paths_ranges = list(zip(find_colon,find_ext))
                 for pathrange in paths_ranges:
                     docpath_r.append(eventdrop.data[pathrange[0]:pathrange[1]])
 
             else:
-                docpath = [askopenfilenames(parent=self, title=f"Bitte gebe den Pfad des Dokuments ein: ", filetypes=[("Pdf file", "*.pdf")])]
+                docpath = [askopenfilenames(parent=self, title=f"Bitte gebe den Pfad des Dokuments ein: ", filetypes=[("Pdf or picture file", ("*.pdf", "*.png","*.jpeg","*.jpg"))])]
                 docpath_r = [path for path in docpath[0]]
                 if docpath[0] == '':
                     return #Wenn kein Dokument ausgewählt wird
 
             for path in docpath_r:    
                 filename = path.split("/")[-1].split(".")[0]
-                
-                reader = PyPDF2.PdfFileReader(path, strict = False)
+
+                try: reader = PyPDF2.PdfFileReader(path, strict = False)
+                except: 
+                    reader, path = pdf_convert(path, filename) # Use pdf_convert from merge.py if document is jpg,jpeg,png
                 count_pages = reader.getNumPages()
 
                 if count_pages == 0:
