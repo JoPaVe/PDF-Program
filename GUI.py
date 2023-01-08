@@ -349,13 +349,13 @@ class MergePage(tk.Frame):
         update_site = tk.StringVar()
         update_site.set("Aktualisieren")
         update_btn = tk.Button(input_frame, textvariable=update_site, command=lambda:update_docnum(), height=1, width=10, relief="groove", bg="#dadada")
-        update_btn.grid(column=3,row=0, padx=65,ipadx=20)
+        update_btn.grid(column=2,row=3, padx=65,ipadx=20)
 
         # Laden für Seitenangabe
-        load_site = tk.StringVar()
-        load_site.set("Seiten laden")
-        load_site_btn = tk.Button(input_frame, textvariable=load_site, command=lambda:select_records(), height=1, width=10, relief="groove", bg="#dadada")
-        load_site_btn.grid(column=0,row=0, padx=65,ipadx=20)
+        #load_site = tk.StringVar()
+        #load_site.set("Seiten laden")
+        #load_site_btn = tk.Button(input_frame, textvariable=load_site, command=lambda:select_records(), height=1, width=10, relief="groove", bg="#dadada")
+        #load_site_btn.grid(column=0,row=0, padx=65,ipadx=20)
         
         ## Label
         #> Von für Seitenangabe
