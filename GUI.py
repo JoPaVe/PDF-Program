@@ -289,7 +289,7 @@ class MergePage(tk.Frame):
                 except: return
         # Verändere Dokumentenseiten
         #> Ausgewählte Input
-        def select_records():
+        def select_records(event):
             # Clear entry boxes
             from_box.delete(0, 'end')
             to_box.delete(0, 'end')
@@ -333,65 +333,6 @@ class MergePage(tk.Frame):
             from_box.delete(0, 'end')
             to_box.delete(0, 'end')
 
-### Treeview_Frame
-        # Tabelle füllen
-        def fill_table(table_list, insert_tuple):
-            table_list.append(insert_tuple)
-            for item in table_list:
-                tree.insert(parent='',index = 0, values = item)
-
-        # Treeview
-        columns = ('Dokumentenname', 'Von', 'Bis', 'Pfad')
-        tree = ttk.Treeview(tree_frame,columns = columns, show='headings', height=5)
-        tree.grid(row=0, column=0, sticky="W")
-
-        #> Headings:
-        tree.heading(columns[0], text = columns[0])
-        tree.heading(columns[1], text = columns[1])
-        tree.heading(columns[2], text = columns[2])
-        tree.heading(columns[3], text = columns[3])
-
-        #> Hide column 3
-        tree["displaycolumns"] = ("0", "1", "2")
-
-        #> Scrollbar
-        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
-        tree.configure(yscroll=scrollbar.set)
-        scrollbar.grid(row=0, column=1, sticky="nse")
-
-        #> Drag and Drop into Treeview
-        tree.drop_target_register(DND_FILES)
-        tree.dnd_bind('<<Drop>>', enter_doc)
-
-        #Drag and Drop in tree control - https://stackoverflow.com/a/13354454
-        def bDown_Shift(event):
-            tv = event.widget
-            select = [tv.index(s) for s in tv.selection()]
-            select.append(tv.index(tv.identify_row(event.y)))
-            select.sort()
-            for i in range(select[0],select[-1]+1,1):
-                tv.selection_add(tv.get_children()[i])
-
-        def bDown(event):
-            tv = event.widget
-            if tv.identify_row(event.y) not in tv.selection():
-                tv.selection_set(tv.identify_row(event.y))    
-
-        def bUp(event):
-            tv = event.widget
-            if tv.identify_row(event.y) in tv.selection():
-                tv.selection_set(tv.identify_row(event.y))    
-
-        def bMove(event):
-            tv = event.widget
-            moveto = tv.index(tv.identify_row(event.y))    
-            for s in tv.selection():
-                tv.move(s, '', moveto)
-
-        tree.bind("<ButtonPress-1>",bDown)
-        tree.bind("<ButtonRelease-1>",bUp, add='+')
-        tree.bind("<B1-Motion>",bMove, add='+')
-        tree.bind("<Shift-ButtonPress-1>",bDown_Shift, add='+')
 ### Input_Frame
         # Entries
         #> Von Box für Seitenangabe
@@ -425,7 +366,70 @@ class MergePage(tk.Frame):
         #> Bis für Seitenangabe
         bis_label = tk.Label(input_frame,text="Bis: ",bg="#FFD580")
         bis_label.grid(column=1,row = 1)
-        
+
+### Treeview_Frame
+        # Tabelle füllen
+        def fill_table(table_list, insert_tuple):
+            table_list.append(insert_tuple)
+            for item in table_list:
+                tree.insert(parent='',index = 0, values = item)
+
+        # Treeview
+        columns = ('Dokumentenname', 'Von', 'Bis', 'Pfad')
+        tree = ttk.Treeview(tree_frame,columns = columns, show='headings', height=5)
+        tree.grid(row=0, column=0, sticky="W")
+
+        #> Headings:
+        tree.heading(columns[0], text = columns[0])
+        tree.heading(columns[1], text = columns[1])
+        tree.heading(columns[2], text = columns[2])
+        tree.heading(columns[3], text = columns[3])
+
+        #> Hide column 3
+        tree["displaycolumns"] = ("0", "1", "2")
+
+        #> Scrollbar
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscroll=scrollbar.set)
+        scrollbar.grid(row=0, column=1, sticky="nse")
+
+        #> Drag and Drop into Treeview
+        tree.drop_target_register(DND_FILES)
+        tree.dnd_bind('<<Drop>>', enter_doc)
+
+
+        #> Automatically load pages when double clicked
+        tree.bind("<Double-1>", select_records)
+
+        #Drag and Drop in tree control - https://stackoverflow.com/a/13354454
+        def bDown_Shift(event):
+            tv = event.widget
+            select = [tv.index(s) for s in tv.selection()]
+            select.append(tv.index(tv.identify_row(event.y)))
+            select.sort()
+            for i in range(select[0],select[-1]+1,1):
+                tv.selection_add(tv.get_children()[i])
+
+        def bDown(event):
+            tv = event.widget
+            if tv.identify_row(event.y) not in tv.selection():
+                tv.selection_set(tv.identify_row(event.y))    
+
+        def bUp(event):
+            tv = event.widget
+            if tv.identify_row(event.y) in tv.selection():
+                tv.selection_set(tv.identify_row(event.y))    
+
+        def bMove(event):
+            tv = event.widget
+            moveto = tv.index(tv.identify_row(event.y))    
+            for s in tv.selection():
+                tv.move(s, '', moveto)
+
+        tree.bind("<ButtonPress-1>",bDown)
+        tree.bind("<ButtonRelease-1>",bUp, add='+')
+        tree.bind("<B1-Motion>",bMove, add='+')
+        tree.bind("<Shift-ButtonPress-1>",bDown_Shift, add='+')        
         
 ### Button_Frame Button
         # Hinzufügen
