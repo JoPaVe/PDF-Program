@@ -333,6 +333,27 @@ class MergePage(tk.Frame):
             from_box.delete(0, 'end')
             to_box.delete(0, 'end')
 
+        def copy_doc():
+            # Get selected
+            selected = tree.focus()
+            if selected == '':
+                showinfo("Uffbasse", "Es muss zuerst die Seiten des Dokuments geladen werden!")
+                return            
+
+            values = tree.item(selected, 'values')
+            path = values[3] #Get docpath for copy
+
+            reader = PyPDF2.PdfFileReader(path, strict = False)
+            count_pages = reader.getNumPages() #load original docpages
+            
+            if count_pages == 0:
+                showinfo("Uffbasse", "Das Dokument ist beschädigt und kann nicht geladen werden! ")
+            else:
+                values = list(values)
+                values[2] = count_pages #update count_pages back to original document, change to list to immute
+                
+                tree.insert(parent='',index = 0, values = tuple(values))
+
 ### Input_Frame
         # Entries
         #> Von Box für Seitenangabe
@@ -350,6 +371,12 @@ class MergePage(tk.Frame):
         update_site.set("Aktualisieren")
         update_btn = tk.Button(input_frame, textvariable=update_site, command=lambda:update_docnum(), height=1, width=10, relief="groove", bg="#dadada")
         update_btn.grid(column=2,row=3, padx=65,ipadx=20)
+
+        # Copy von Dokumenten 
+        copy_site = tk.StringVar()
+        copy_site.set("Kopieren")
+        copy_btn = tk.Button(input_frame, textvariable=copy_site, command=lambda:copy_doc(), height=1, width=10, relief="groove", bg="#dadada")
+        copy_btn.grid(column=2,row=4, padx=65,ipadx=20)
 
         # Laden für Seitenangabe
         #load_site = tk.StringVar()
