@@ -248,7 +248,7 @@ class MergePage(tk.Frame):
             docpath_r = []
             if eventdrop != None: #Eventdrop, wenn per Drag and Drop ausgewählt wird.
                 find_colon = [m.start() - 1 for m in re.finditer(":", eventdrop.data)] # Finde alle Doppelpunkte, schneide String bis ".pdf" aus.
-                find_ext = [m.start() + 4 for m in re.finditer(".pdf|.jped|.jpg|.png", eventdrop.data)]
+                find_ext = [m.start() + 4 for m in re.finditer(".pdf|.jpeg|.jpg|.png", eventdrop.data)]
                 paths_ranges = list(zip(find_colon,find_ext))
                 for pathrange in paths_ranges:
                     docpath_r.append(eventdrop.data[pathrange[0]:pathrange[1]])
