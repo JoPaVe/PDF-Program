@@ -307,7 +307,7 @@ class MergePage(tk.Frame):
                 pass
 
         #> Aktualisiere Dokumentenseiten
-        def update_docnum():
+        def update_docnum(event):
             # Get selected
             selected = tree.focus()
             if selected == '':
@@ -368,10 +368,10 @@ class MergePage(tk.Frame):
         to_box.grid(row=1,column=2)
 
         # Update für Seitenangabe 
-        update_site = tk.StringVar()
-        update_site.set("Aktualisieren")
-        update_btn = tk.Button(input_frame, textvariable=update_site, command=lambda:update_docnum(), height=1, width=10, relief="groove", bg="#dadada")
-        update_btn.grid(column=2,row=3, padx=65,ipadx=20)
+        #update_site = tk.StringVar()
+        #update_site.set("Aktualisieren")
+        #update_btn = tk.Button(input_frame, textvariable=update_site, command=lambda:update_docnum(), height=1, width=10, relief="groove", bg="#dadada")
+        #update_btn.grid(column=2,row=3, padx=65,ipadx=20)
 
         # Copy von Dokumenten 
         copy_site = tk.StringVar()
@@ -428,6 +428,9 @@ class MergePage(tk.Frame):
 
         #> Automatically load pages when double clicked
         tree.bind("<Double-1>", select_records)
+
+        #> Automatically apply changes when pressing enter in "Bis:" textbox
+        to_box.bind('<Return>', update_docnum)
 
         #Drag and Drop in tree control - https://stackoverflow.com/a/13354454
         def bDown_Shift(event):
