@@ -206,41 +206,81 @@ class MergePage(tk.Frame):
                 photo_viewer(images_pdf)
                 os.remove(pdf_temp)
         
+        def button_press(index):
+            cur_col = self.buttons[index].cget('bg')
+            if cur_col == "green":
+                self.buttons[index].configure(bg = "black")
+            else:
+                self.buttons[index].configure(bg = "green")
+        
         def photo_viewer(image_list):
             image_top = tk.Toplevel()
             image_top.title('Vorschau')
             image_top.resizable()
-            top_main_frame = tk.Frame(image_top, bg="#FFA500", width=600)
-            top_main_frame.grid(row = 0, column = 0)
+            self.top_main_frame = tk.Frame(image_top, bg="#FFA500", width=600)
+            self.top_main_frame.grid(row = 0, column = 0)
             
-            # PictureList
-            list_pictures = [ImageTk.PhotoImage(page.resize((int(page.size[0]*(1/4)),int(page.size[1]*(1/4))), Image.Resampling.LANCZOS)) for page in image_list]
+            # All buttons with pictures
+            self.buttons = {}          
 
+            for button_count, page in enumerate(image_list):
+                page_picture = ImageTk.PhotoImage(page.resize((250,200), Image.Resampling.LANCZOS))
+                self.buttons[button_count] = tk.Button(self.top_main_frame, height=200, width = 200, command = lambda but = button_count: button_press(but), image = page_picture, bg="black")
+                self.buttons[button_count].image = page_picture
 
-            img_label = tk.Label(top_main_frame, image = list_pictures[0])
-            img_label.grid(row = 0, column = 0, columnspan = 2)
+            
+            show_picture() #initialize first page buttons
 
             # Button Back
-            back_button = tk.Button(top_main_frame, text = 'Back', command = lambda: Back(img_label, list_pictures), height=1, width = 20, relief="groove", bg="#dadada")
-            back_button.grid(row = 1, column = 0)
+            self.back_button = tk.Button(self.top_main_frame, text = 'Back', command = lambda: Back(), height=1, width = 20, relief="groove", bg="#dadada")
+            self.back_button.grid(row = 3, column = 0, columnspan = 3)
 
             # Button Next
-            next_button = tk.Button(top_main_frame, text = 'Next', command = lambda: Next(img_label, list_pictures), height=1, width = 20, relief="groove", bg="#dadada")  
-            next_button.grid(row = 1, column = 1)
-
-        def Back(img_label, list_pictures):  
-            self.cur_page = self.cur_page - 1  
+            self.next_button = tk.Button(self.top_main_frame, text = 'Next', command = lambda: Next(), height=1, width = 20, relief="groove", bg="#dadada")  
+            self.next_button.grid(row = 3, column = 4, columnspan = 3)
+        
+        def show_picture():
+            row_count = 0
+            column_count = 0
+        
+            
+            for button in list(self.buttons.values())[self.cur_page:]:
+                if row_count >= 2:
+                    break
+                else:
+                    button.grid(row = row_count, column = column_count)
+                    column_count += 1
+                    if column_count == 5:
+                        row_count += 1
+                        column_count = 0
+                        
+        
+        def Back():  
+            for widget in self.top_main_frame.winfo_children():
+                widget.grid_remove()
+                self.back_button.grid(row = 3, column = 0, columnspan = 3)
+                self.next_button.grid(row = 3, column = 4, columnspan = 3)
+            
+            self.cur_page = self.cur_page - 10  
             if self.cur_page >= 0:
-                img_label.config(image = list_pictures[self.cur_page])
+                show_picture()
             else:
                 self.cur_page = 0
+                show_picture()
 
 
-        def Next(img_label, list_pictures):
-            self.cur_page = self.cur_page + 1  
-            if self.cur_page < len(list_pictures):
-                img_label.config(image = list_pictures[self.cur_page])  
-            else: self.cur_page = len(list_pictures) - 1
+        def Next():
+            for widget in self.top_main_frame.winfo_children():
+                widget.grid_remove()
+                self.back_button.grid(row = 3, column = 0, columnspan = 3)
+                self.next_button.grid(row = 3, column = 4, columnspan = 3)
+                
+            self.cur_page = self.cur_page + 10 
+            if self.cur_page >= len(self.buttons):
+                self.cur_page = len(self.buttons) - 10
+                show_picture()
+            else:
+                show_picture()
 
 
         # Hinzufügen
