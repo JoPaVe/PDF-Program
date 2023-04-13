@@ -26,9 +26,11 @@ def merge_files(path_docs, tempor = False):
         documentname = "_".join(namelist) + "_Zusammengefügt.pdf"
         try:
             output = os.path.join(path,documentname)
+            merger.save(output)
         except:
             output = os.path.join(path,"ZusammengefuegteDatei.pdf")
-        merger.save(output)
+            merger.save(output)
+        
     elif tempor == True:
         pdf_temp_file_path = os.path.join(tempfile.gettempdir(),"tempfile.pdf")
         merger.save(pdf_temp_file_path)

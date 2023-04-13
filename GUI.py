@@ -1,7 +1,7 @@
 import tkinter as tk
 from unicodedata import decimal
 import PyPDF2
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfFileReader, PdfReader, PdfWriter
 from PIL import Image, ImageTk
 from pygments import highlight
 from Merge import merge_files, pdf_convert
@@ -10,7 +10,7 @@ import os
 import re
 import tempfile
 
-from tkinter.filedialog import askopenfile, askopenfilename, askopenfilenames
+from tkinter.filedialog import askopenfile, askopenfilename, askopenfilenames, askdirectory
 from tkinter import RAISED, Frame, scrolledtext, Label
 from tkinter import LEFT, RIDGE, ttk
 from tkinter.messagebox import showinfo
@@ -200,44 +200,74 @@ class MergePage(tk.Frame):
                 for entry in list_entries:
                     paths.append([tree.item(entry)['values'][0],tree.item(entry)['values'][1],tree.item(entry)['values'][2],tree.item(entry)['values'][3]])
                 
-                pdf_temp = merge_files(paths, tempor = True)
+                self.pdf_temp = merge_files(paths, tempor = True)
 
-                images_pdf = convert_from_path(pdf_temp, poppler_path = r"C:\Anaconda\pkgs\poppler-22.11.0-ha6c1112_0\Library\bin") 
+                images_pdf = convert_from_path(self.pdf_temp, poppler_path = r"C:\Anaconda\pkgs\poppler-22.11.0-ha6c1112_0\Library\bin") 
                 photo_viewer(images_pdf)
-                os.remove(pdf_temp)
+                
         
         def button_press(index):
-            cur_col = self.buttons[index].cget('bg')
+            cur_col = self.buttons[index][0].cget('bg')
             if cur_col == "green":
-                self.buttons[index].configure(bg = "black")
+                self.buttons[index][0].configure(bg = "black")
+                self.buttons[index][2] = False
+
             else:
-                self.buttons[index].configure(bg = "green")
-        
+                self.buttons[index][0].configure(bg = "green")
+                self.buttons[index][2] = True
+
+        def execute_preview():
+            reader = PdfReader(self.pdf_temp)
+            writer = PdfWriter()
+            
+            sorted_buttons = sorted(self.buttons.items(), key = lambda x: x[1][2])
+
+            for page, button_item in enumerate(sorted_buttons):
+                if button_item[1][2] == True:
+                    writer.add_page(reader.pages[button_item[0]])
+            
+            path = askdirectory()
+            output_path = os.path.join(path, "PDF_zusammengefügt.pdf")
+            try: 
+                with open(output_path, "wb") as fp:
+                    writer.write(fp)
+            except:
+                showinfo("Uffbasse", "Das Dokument ist beschädigt und kann nicht geladen werden! ")
+            
+            os.remove(self.pdf_temp)
+ 
         def photo_viewer(image_list):
             image_top = tk.Toplevel()
             image_top.title('Vorschau')
             image_top.resizable()
+            image_top.grid_columnconfigure(0, weight=1)
+            image_top.grid_columnconfigure(1, weight=1)
+            
             self.top_main_frame = tk.Frame(image_top, bg="#FFA500", width=600)
-            self.top_main_frame.grid(row = 0, column = 0)
+            self.top_main_frame.grid(row = 0, column = 0,sticky=(tk.N, tk.S, tk.E, tk.W))
             
             # All buttons with pictures
             self.buttons = {}          
 
             for button_count, page in enumerate(image_list):
-                page_picture = ImageTk.PhotoImage(page.resize((250,200), Image.Resampling.LANCZOS))
-                self.buttons[button_count] = tk.Button(self.top_main_frame, height=200, width = 200, command = lambda but = button_count: button_press(but), image = page_picture, bg="black")
-                self.buttons[button_count].image = page_picture
-
+                page_picture = ImageTk.PhotoImage(page.resize((158,224), Image.Resampling.LANCZOS))
+                self.buttons[button_count] = [tk.Button(self.top_main_frame, width = 158, height=224,  command = lambda but = button_count: button_press(but), image = page_picture, bg="green"), button_count, True] # Dict with keys: Initial count in temp_pdf, values: (buttonlink, currentpage, status)
+                self.buttons[button_count][0].image = page_picture
+                        
             
             show_picture() #initialize first page buttons
-
+            print(self.buttons)
             # Button Back
             self.back_button = tk.Button(self.top_main_frame, text = 'Back', command = lambda: Back(), height=1, width = 20, relief="groove", bg="#dadada")
             self.back_button.grid(row = 3, column = 0, columnspan = 3)
 
             # Button Next
             self.next_button = tk.Button(self.top_main_frame, text = 'Next', command = lambda: Next(), height=1, width = 20, relief="groove", bg="#dadada")  
-            self.next_button.grid(row = 3, column = 4, columnspan = 3)
+            self.next_button.grid(row = 3, column = 2, columnspan = 3)
+            
+            self.execute_preview_button = tk.Button(self.top_main_frame, text = 'Ausführen', command = lambda: execute_preview(), height=1, width = 20, relief="groove", bg="#dadada")  
+            self.execute_preview_button.grid(row = 3, column = 1, columnspan = 3)
+            
         
         def show_picture():
             row_count = 0
@@ -248,7 +278,7 @@ class MergePage(tk.Frame):
                 if row_count >= 2:
                     break
                 else:
-                    button.grid(row = row_count, column = column_count)
+                    button[0].grid(row = row_count, column = column_count)
                     column_count += 1
                     if column_count == 5:
                         row_count += 1
@@ -259,7 +289,8 @@ class MergePage(tk.Frame):
             for widget in self.top_main_frame.winfo_children():
                 widget.grid_remove()
                 self.back_button.grid(row = 3, column = 0, columnspan = 3)
-                self.next_button.grid(row = 3, column = 4, columnspan = 3)
+                self.next_button.grid(row = 3, column = 2, columnspan = 3)
+                self.execute_preview_button.grid(row = 3, column = 1, columnspan = 3)
             
             self.cur_page = self.cur_page - 10  
             if self.cur_page >= 0:
@@ -273,7 +304,8 @@ class MergePage(tk.Frame):
             for widget in self.top_main_frame.winfo_children():
                 widget.grid_remove()
                 self.back_button.grid(row = 3, column = 0, columnspan = 3)
-                self.next_button.grid(row = 3, column = 4, columnspan = 3)
+                self.next_button.grid(row = 3, column = 2, columnspan = 3)
+                self.execute_preview_button.grid(row = 3, column = 1, columnspan = 3)
                 
             self.cur_page = self.cur_page + 10 
             if self.cur_page >= len(self.buttons):
@@ -295,7 +327,7 @@ class MergePage(tk.Frame):
                     docpath_r.append(eventdrop.data[pathrange[0]:pathrange[1]])
 
             else:
-                docpath = [askopenfilenames(parent=self, title=f"Bitte gebe den Pfad des Dokuments ein: ", filetypes=[("Pdf or picture file", ("*.pdf", "*.png","*.jpeg","*.jpg"))])]
+                docpath = [askopenfilenames(parent=self, title="Bitte gebe den Pfad des Dokuments ein: ", filetypes=[("Pdf or picture file", ("*.pdf", "*.png","*.jpeg","*.jpg"))])]
                 docpath_r = [path for path in docpath[0]]
                 if docpath[0] == '':
                     return #Wenn kein Dokument ausgewählt wird
